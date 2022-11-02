@@ -18,9 +18,21 @@ end
 
 discord.chat_send_all = minetest.chat_send_all
 
+local byte, len, sub = utf8.byte, utf8.len, utf8.sub
+local function remove_emoji(message)
+    local s = ""
+    for i = 1, len(message) do
+        if byte(message, i) >= 32 and byte(message, i) <= 1105 then
+            s = s .. sub(message, i, i)
+        end
+    end
+
+    return s
+end
+
 -- Allow the chat message format to be customised by other mods
 function discord.format_chat_message(name, msg)
-    return ('<%s@Discord> %s'):format(name, msg)
+    return remove_emoji(('%s@Discord: %s'):format(name, msg))
 end
 
 function discord.handle_response(response)
@@ -125,7 +137,9 @@ end
 -- Register the chat message callback after other mods load so that anything
 -- that overrides chat will work correctly
 minetest.after(0, minetest.register_on_chat_message, function(name, message)
-    discord.send(minetest.format_chat_message(name, message))
+    if minetest.check_player_privs(name, "shout") then
+        discord.send(minetest.format_chat_message(name, message))
+    end
 end)
 
 local timer = 0

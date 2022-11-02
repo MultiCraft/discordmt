@@ -87,6 +87,18 @@ async def handle(request):
         if data['type'] == 'DISCORD-RELAY-MESSAGE':
             msg = translation_re.sub('', data['content'])
             msg = discord.utils.escape_mentions(msg)[:2000]
+
+            # MultiCraft-specific code
+            if msg.startswith('=>'):
+                msg = '➡️' + msg[2:]
+            elif msg.startswith('<='):
+                msg = '⬅️' + msg[2:]
+            elif msg.split(' ', 1)[0].endswith(':') or msg.startswith('*'):
+                # This will hopefully catch all chat
+                msg = '💬 ' + msg
+            else:
+                msg = '♦️ ' + msg
+
             if 'context' in data:
                 id = int(data['context'])
                 target_channel = bot.get_partial_messageable(id)
