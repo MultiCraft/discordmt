@@ -18,20 +18,28 @@ end
 
 discord.chat_send_all = minetest.chat_send_all
 
-local byte, len, sub = utf8.byte, utf8.len, utf8.sub
+local byte, len, sub, tconcat = utf8.byte, utf8.len, utf8.sub, table.concat
 local function remove_emoji(message)
-    local s = ""
+    local s = {}
     for i = 1, len(message) do
         if byte(message, i) >= 32 and byte(message, i) <= 1105 then
-            s = s .. sub(message, i, i)
+            s[#s + 1] = sub(message, i, i)
         end
     end
 
-    return s
+    return tconcat(s)
 end
 
 -- Allow the chat message format to be customised by other mods
 function discord.format_chat_message(name, msg)
+    -- Has to be here because chat_anticurse currently optionally depends on
+    -- discordmt
+    if minetest.global_exists("chat_anticurse") then
+        local has_bad_words, censored_msg = chat_anticurse.check_curse(msg)
+        if has_bad_words then
+            msg = censored_msg
+        end
+    end
     return remove_emoji(('%s@Discord: %s'):format(name, msg))
 end
 
