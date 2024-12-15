@@ -86,7 +86,7 @@ async def handle(request):
         data = await request.json()
         if data['type'] == 'DISCORD-RELAY-MESSAGE':
             msg = translation_re.sub('', data['content'])
-            msg = discord.utils.escape_mentions(msg)[:2000]
+            msg = discord.utils.escape_mentions(msg)
 
             # MultiCraft-specific code
             if msg.startswith('=>'):
@@ -98,6 +98,7 @@ async def handle(request):
                 msg = '💬 ' + msg
             else:
                 msg = '♦️ ' + msg
+            msg = msg[:2000]
 
             if 'context' in data:
                 id = int(data['context'])
