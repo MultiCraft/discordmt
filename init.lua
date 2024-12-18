@@ -73,9 +73,13 @@ function discord.handle_response(response)
                     discord.send('You cannot run commands because you are banned.', v.context or nil)
                     return
                 end
+                local player_privs = minetest.get_player_privs(v.name)
+                if not player_privs.ban then
+                    discord.send('Only server staff can use commands.', v.context or nil)
+                    return
+                end
                 -- Check player privileges
                 local required_privs = commands[v.command].privs or {}
-                local player_privs = minetest.get_player_privs(v.name)
                 for priv, value in pairs(required_privs) do
                     if player_privs[priv] ~= value then
                         discord.send('Insufficient privileges.', v.context or nil)
