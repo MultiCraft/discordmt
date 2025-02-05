@@ -74,10 +74,10 @@ function discord.handle_response(response)
                     return
                 end
                 local player_privs = minetest.get_player_privs(v.name)
-                if not player_privs.ban then
+                --[[if not player_privs.ban then
                     discord.send('Only server staff can use commands.', v.context or nil)
                     return
-                end
+                end]]
                 -- Check player privileges
                 local required_privs = commands[v.command].privs or {}
                 for priv, value in pairs(required_privs) do
@@ -93,8 +93,20 @@ function discord.handle_response(response)
                         discord.send(message, v.context or nil)
                     end
                 end
-                local success, ret_val = commands[v.command].func(v.name, v.params or '')
-                if ret_val then
+                minetest.log('warning', '[Discord] Command: ' .. v.command .. " executed with param: ".. dump(v.params or '') .. " by " .. v.name)
+
+                local command = commands[v.command]
+                local success, err_msg, ret_val = pcall(function()
+                    return command.func(v.name, v.params or '')
+                end)
+
+                if not success then
+                    minetest.log("error", "[Discord] Error executing command " .. v.command .. ": " ..
+                        tostring(err_msg))
+                    return
+                end
+
+                if type(ret_val) == "string" and ret_val ~= "" then
                     discord.send(ret_val, v.context or nil)
                 end
                 minetest.chat_send_player = old_chat_send_player
